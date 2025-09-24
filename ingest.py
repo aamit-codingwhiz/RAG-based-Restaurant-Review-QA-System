@@ -1,9 +1,9 @@
-import os
 from langchain_ollama import OllamaEmbeddings
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
 import pandas as pd
 import config
+import os
 
 
 vectore_store = Chroma(
@@ -18,6 +18,7 @@ df = pd.read_csv(filepath_or_buffer=config.CSV_FILE)
 add_documents = not os.path.exists(path=config.DB_PATH)
 
 if add_documents:
+    print("Document creation - start")
     documents = []
     ids = []
 
@@ -34,13 +35,12 @@ if add_documents:
         documents.append(doc)
         ids.append(str(i))
 
-
-if add_documents:
     vectore_store.add_documents(
         documents=documents,
         ids=ids
     )
 
 retriever = vectore_store.as_retriever(
-    search_kwargs={"k": 5, "filter": {"rating": 4}}
+    search_type="mmr",
+    search_kwargs={"k": 5}
 )

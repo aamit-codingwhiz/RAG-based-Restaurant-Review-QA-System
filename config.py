@@ -1,5 +1,5 @@
 # Paths
-DB_PATH = "./chroma_langchain_db"
+DB_PATH = "chroma_langchain_db"
 CSV_FILE = "realistic_restaurant_reviews.csv"
 
 # Models

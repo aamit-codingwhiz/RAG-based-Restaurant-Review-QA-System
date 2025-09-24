@@ -1,34 +1,43 @@
 from langchain_ollama.llms import OllamaLLM
-from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains import RetrievalQA
+from langchain.prompts import PromptTemplate
 from ingest import retriever
 import config
+ 
 
-model = OllamaLLM(
-    model=config.LLM_MODEL,
-    temperature = 0.7,
-    verbose=True
-)
+template = """
+You are a helpful assistant. Use the following context to answer the question.
+If the answer is not in the context, make your best guess based on the information provided.
 
-prompt_template = """
-You are an exeprt in answering questions about a pizza restaurant
-Here are some relevant reviews: {reviews}
-Here is the question to answer: {question}
+Context:
+{context}
 
-Ans clearly and consisely.
+Question: {question}
+Answer:
 """
-prompt = ChatPromptTemplate.from_template(
-    template=prompt_template
+
+prompt = PromptTemplate(
+    template=template,
+    input_variables=["context", "question"]
 )
 
-chain = prompt | model
+qa = RetrievalQA.from_chain_type(
+    llm=OllamaLLM(
+        model=config.LLM_MODEL,
+        temperature = 0.3,
+        verbose=True
+    ), 
+    retriever=retriever,
+    chain_type_kwargs={"prompt": prompt},
+    return_source_documents=True
+)
+
 while True:
-    qn = input("Ask your question (q to quit): ")
-    if qn.strip().lower() == "q":
+    query = input("Ask your question (q to quit): ").strip()
+    if query.lower() == "q":
         break
 
-    reviews = retriever.invoke(qn)
-    result = chain.invoke({
-        "reviews": reviews, 
-        "question": qn
-    })
-    print(result)
+    result = qa.invoke(query)
+    
+    print(result["result"])
+    print("-"*30)
