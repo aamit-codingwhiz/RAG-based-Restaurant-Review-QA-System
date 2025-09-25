@@ -39,5 +39,5 @@ while True:
 
     result = qa.invoke(query)
     
-    print(result["result"])
-    print("-"*30)
+    print(f"Bot: {result["result"]}")
+    print("-"*60)

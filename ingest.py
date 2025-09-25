@@ -14,11 +14,10 @@ vectore_store = Chroma(
     )
 )
 
-df = pd.read_csv(filepath_or_buffer=config.CSV_FILE)
 add_documents = not os.path.exists(path=config.DB_PATH)
-
 if add_documents:
     print("Document creation - start")
+    df = pd.read_csv(filepath_or_buffer=config.CSV_FILE)
     documents = []
     ids = []
 
