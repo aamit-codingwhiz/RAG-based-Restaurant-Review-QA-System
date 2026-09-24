@@ -3,10 +3,9 @@ from langchain_core.documents import Document
 from langchain_chroma import Chroma
 import pandas as pd
 import config
-import os
 
 
-vectore_store = Chroma(
+vector_store = Chroma(
     collection_name="restaurant_reviews",
     persist_directory=config.DB_PATH,
     embedding_function=OllamaEmbeddings(
@@ -14,35 +13,41 @@ vectore_store = Chroma(
     )
 )
 
-add_documents = not os.path.exists(path=config.DB_PATH)
-if add_documents:
+# Check the actual database, not just whether the folder exists
+if vector_store._collection.count() == 0:
     print("Document creation - start")
-    df = pd.read_csv(filepath_or_buffer=config.CSV_FILE)
+
+    df = pd.read_csv(config.CSV_FILE)
+
     documents = []
     ids = []
 
     for i, row in df.iterrows():
         doc = Document(
-            page_content=row["Title"] + " " + row["Review"],
+            page_content=f"{row['Title']} {row['Review']}",
             metadata={
                 "Rating": row["Rating"],
                 "Date": row["Date"]
-            },
-            id=str(i)
+            }
         )
 
         documents.append(doc)
         ids.append(str(i))
 
-    vectore_store.add_documents(
+    vector_store.add_documents(
         documents=documents,
         ids=ids
     )
 
+    print(f"Added {len(documents)} reviews to Chroma.")
+
+else:
+    print(
+        f"Loaded {vector_store._collection.count()} reviews from Chroma."
+    )
+
+
 retriever = vector_store.as_retriever(
-    search_type="mmr",
-    search_kwargs={
-        "k": 4,
-        "fetch_k": 12
-    }
+    search_type="similarity",
+    search_kwargs={"k": 5}
 )
