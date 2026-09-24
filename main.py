@@ -6,13 +6,20 @@ import config
  
 
 template = """
-You are a helpful assistant. Use the following context to answer the question.
-If the answer is not in the context, make your best guess based on the information provided.
+You answer questions about restaurant reviews.
+
+Use only the context below.
+Summarize patterns across multiple reviews when possible.
+
+Do not invent information.
+If the context does not contain enough information, say: "I don't have enough information."
 
 Context:
 {context}
 
-Question: {question}
+Question:
+{question}
+
 Answer:
 """
 
@@ -24,7 +31,7 @@ prompt = PromptTemplate(
 qa = RetrievalQA.from_chain_type(
     llm=OllamaLLM(
         model=config.LLM_MODEL,
-        temperature = 0.3,
+        temperature = 0.1,
         verbose=True
     ), 
     retriever=retriever,
